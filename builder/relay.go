@@ -91,6 +91,7 @@ func (r *RemoteRelay) updateValidatorsMap(currentSlot uint64, retries int) error
 	r.lastRequestedSlot = currentSlot
 	r.validatorsLock.Unlock()
 
+	fmt.Printf("%+v\n", newMap)
 	log.Info("Updated validators", "count", len(newMap), "slot", currentSlot)
 	return nil
 }
@@ -100,16 +101,12 @@ func (r *RemoteRelay) GetValidatorForSlot(nextSlot uint64) (ValidatorData, error
 	// if not sanitized it will force resync of validator data and possibly is a DoS vector
 
 	r.validatorsLock.RLock()
-	if r.lastRequestedSlot == 0 || nextSlot/32 > r.lastRequestedSlot/32 {
-		// Every epoch request validators map
-		go func() {
-			err := r.updateValidatorsMap(nextSlot, 1)
-			if err != nil {
-				log.Error("could not update validators map", "err", err)
-			}
-		}()
+	// Every epoch request validators map
+	err := r.updateValidatorsMap(nextSlot, 1)
+	if err != nil {
+		log.Error("could not update validators map", "err", err)
 	}
-
+	
 	vd, found := r.validatorSlotMap[nextSlot]
 	r.validatorsLock.RUnlock()
 
@@ -122,6 +119,7 @@ func (r *RemoteRelay) GetValidatorForSlot(nextSlot uint64) (ValidatorData, error
 	}
 
 	if found {
+		log.Info("Found validator", vd)
 		return vd, nil
 	}
 

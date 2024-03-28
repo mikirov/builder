@@ -373,13 +373,14 @@ func (b *Builder) OnPayloadAttribute(attrs *types.BuilderPayloadAttributes) erro
 		return fmt.Errorf("could not get validator while submitting block for slot %d - %w", attrs.Slot, err)
 	}
 
-	parentBlock := b.eth.GetBlockByHash(attrs.HeadHash)
-	if parentBlock == nil {
-		return fmt.Errorf("parent block hash not found in block tree given head block hash %s", attrs.HeadHash)
-	}
+	// parentBlock := b.eth.GetBlockByHash(*attrs.ParentBeaconBlockRoot)
+	// if parentBlock == nil {
+	// 	return fmt.Errorf("parent block hash not found in block tree given head block hash %s", attrs.ParentBeaconBlockRoot)
+	// }
 
 	attrs.SuggestedFeeRecipient = [20]byte(vd.FeeRecipient)
-	attrs.GasLimit = core.CalcGasLimit(parentBlock.GasLimit(), vd.GasLimit)
+	// attrs.GasLimit = core.CalcGasLimit(parentBlock.GasLimit(), vd.GasLimit)
+	attrs.GasLimit = core.CalcGasLimit(30000000, vd.GasLimit)
 
 	proposerPubkey, err := utils.HexToPubkey(string(vd.Pubkey))
 	if err != nil {
@@ -387,7 +388,7 @@ func (b *Builder) OnPayloadAttribute(attrs *types.BuilderPayloadAttributes) erro
 	}
 
 	if !b.eth.Synced() {
-		return errors.New("backend not Synced")
+	return errors.New("backend not Synced")
 	}
 
 	b.slotMu.Lock()
